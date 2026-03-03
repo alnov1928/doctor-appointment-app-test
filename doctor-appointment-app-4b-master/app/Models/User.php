@@ -74,4 +74,10 @@ class User extends Authenticatable
     {
         return $this->hasOne(Patient::class);
     }
+
+    //Relación uno a muchos con SupportTicket
+    public function supportTickets()
+    {
+        return $this->hasMany(SupportTicket::class);
+    }
 }
