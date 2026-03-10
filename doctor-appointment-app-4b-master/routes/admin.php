@@ -5,6 +5,8 @@ use App\Http\Controllers\Admin\RoleController;
 use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Admin\DoctorController;
 use App\Http\Controllers\Admin\SupportTicketController;
+use App\Http\Controllers\Admin\AppointmentController;
+use App\Http\Controllers\Admin\DoctorScheduleController;
 use Illuminate\Support\Facades\Route;
 
 
@@ -24,6 +26,13 @@ Route::resource('patients', PatientController::class);
 
 // Gestión de doctores
 Route::resource('doctors', DoctorController::class);
+
+// Gestión de citas médicas
+Route::resource('appointments', AppointmentController::class);
+
+// Gestión de horarios de doctores
+Route::get('schedules', [DoctorScheduleController::class, 'index'])->name('schedules.index');
+Route::post('schedules', [DoctorScheduleController::class, 'store'])->name('schedules.store');
 
 // Gestión de tickets de soporte
 Route::resource('support-tickets', SupportTicketController::class);

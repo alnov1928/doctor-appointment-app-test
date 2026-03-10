@@ -54,6 +54,9 @@
 
                 <div class="flex space-x-3 mt-6 lg:mt-0">
                     <x-wire-button outline gray href="{{ route('admin.doctors.index') }}">Volver</x-wire-button>
+                    <x-wire-button outline href="{{ route('admin.schedules.index', ['doctor_id' => $doctor->id]) }}">
+                        <i class="fa-solid fa-calendar-days mr-2"></i> Gestionar horario
+                    </x-wire-button>
                     <x-wire-button type="submit" primary><i class="fa-solid fa-save mr-2"></i> Guardar cambios</x-wire-button>
                 </div>
             </div>
