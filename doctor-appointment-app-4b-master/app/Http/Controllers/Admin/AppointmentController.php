@@ -9,7 +9,9 @@ use App\Models\Doctor;
 use App\Models\DoctorSchedule;
 use App\Models\Speciality;
 use App\Services\WhatsAppService;
+use App\Mail\AppointmentCreatedMail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 use Carbon\Carbon;
 
 class AppointmentController extends Controller
@@ -114,6 +116,7 @@ class AppointmentController extends Controller
             'start_time' => 'required|date_format:H:i',
             'end_time' => 'required|date_format:H:i|after:start_time',
             'status' => 'required|in:Programado,Completado,Cancelado',
+            'reason' => 'nullable|string|max:1000',
         ]);
 
         // Verificar que no exista conflicto de horario (doble booking)
@@ -138,6 +141,17 @@ class AppointmentController extends Controller
         // Cargar paciente y doctor para obtener sus datos
         $patient = Patient::with('user')->find($data['patient_id']);
         $doctor = Doctor::with('user')->find($data['doctor_id']);
+
+        // ----------- ENVÍO DE CORREO Y PDF -----------
+        if ($patient && $doctor) {
+            try {
+                Mail::to($patient->user->email)
+                    ->cc($doctor->user->email)
+                    ->send(new AppointmentCreatedMail($appointment));
+            } catch (\Exception $e) {
+                \Log::error("Error al enviar correo de cita: " . $e->getMessage());
+            }
+        }
 
         if ($patient && $patient->user->phone) {
             $formattedDate = Carbon::parse($data['date'])->translatedFormat('d \d\e F \d\e Y');

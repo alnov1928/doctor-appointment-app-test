@@ -188,6 +188,17 @@
                             @enderror
                         </div>
 
+                        {{-- Campo: Motivo o Descripción --}}
+                        <div class="mb-5">
+                            <label for="reason" class="block mb-2 text-sm font-medium text-gray-900">
+                                Motivo de la cita o Descripción (Opcional)
+                            </label>
+                            <textarea id="reason" name="reason" rows="3" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5" placeholder="Indique síntomas, motivo o propósito de la visita..."></textarea>
+                            @error('reason')
+                                <p class="mt-1 text-sm text-red-600">{{ $message }}</p>
+                            @enderror
+                        </div>
+
                         {{-- Botones de acción --}}
                         <div class="flex justify-end gap-3">
                             <a href="{{ route('admin.appointments.index') }}"

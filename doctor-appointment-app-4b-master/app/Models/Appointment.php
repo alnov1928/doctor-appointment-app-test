@@ -14,6 +14,7 @@ class Appointment extends Model
         'start_time',
         'end_time',
         'status',
+        'reason',
     ];
 
     // Relación: una cita pertenece a un paciente

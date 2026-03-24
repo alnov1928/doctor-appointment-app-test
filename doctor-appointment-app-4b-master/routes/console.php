@@ -10,3 +10,4 @@ Artisan::command('inspire', function () {
 
 // Programar recordatorios automáticos de WhatsApp diariamente a las 8:00 AM
 Schedule::command('appointments:reminders')->dailyAt('08:00');
+Schedule::command('reports:daily-appointments')->dailyAt('08:00');
