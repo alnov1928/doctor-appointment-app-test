@@ -37,8 +37,8 @@ class UserController extends Controller
             'name' => 'required|string|min:3|max:255',
             'email' => 'required|string|email|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'id_number' => 'required|string|min:5|max:20|regex:/^[A-Za-z0-9\-]+$/|unique:users',
-            'phone' => 'required|digits_between:7,15',
+            'id_number' => 'required|string|min:5|max:20|regex:/^[A-Za-z0-9\-\+]+$/|unique:users',
+            'phone' => 'required|string|min:7|max:20|regex:/^\+?[0-9\s\-]+$/',
             'address' => 'required|string|min:3|max:255',
             'role_id' => 'required|exists:roles,id',
         ]);
@@ -110,22 +110,32 @@ class UserController extends Controller
         $data = $request->validate([
             'name' => 'required|string|min:3|max:255',
             'email' => 'required|string|email|unique:users,email,' . $user->id,
-            'password' => 'required|string|min:8|confirmed',
-            'id_number' => 'required|string|min:5|max:20|regex:/^[A-Za-z0-9\-]+$/|unique:users,id_number,' . $user->id,
-            'phone' => 'required|digits_between:7,15',
+            'password' => 'nullable|string|min:8|confirmed',
+            'id_number' => 'required|string|min:5|max:20|regex:/^[A-Za-z0-9\-\+]+$/|unique:users,id_number,' . $user->id,
+            'phone' => 'required|string|min:7|max:20|regex:/^\+?[0-9\s\-]+$/',
             'address' => 'required|string|min:3|max:255',
             'role_id' => 'required|exists:roles,id',
         ]);
-        $user->update($data);
-        $user->roles()->attach($data['role_id']);
+        
+        // Solo actualizar la contraseña si se proporcionó una nueva
+        if (!empty($data['password'])) {
+            $data['password'] = bcrypt($data['password']);
+        } else {
+            unset($data['password']); // No intentar actualizar si está vacía
+        }
 
-        session () ->flash('swal', [
+        $user->update($data);
+        
+        // Usar sync() en lugar de attach() para evitar error 'Duplicate entry'
+        $user->roles()->sync([$data['role_id']]);
+
+        session()->flash('swal', [
             'icon' => 'success',
-            'title' => 'Usuario creado correctamente',
-            'text' => 'El usuario se ha creado correctamente.',
+            'title' => 'Usuario actualizado correctamente',
+            'text' => 'El usuario se ha actualizado correctamente.',
         ]);
 
-        return redirect()->route('admin.users.edit', $user->id)->with ('success', 'Usuario actualizado exitosamente.');
+        return redirect()->route('admin.users.edit', $user->id)->with('success', 'Usuario actualizado exitosamente.');
     }
 
     /**
