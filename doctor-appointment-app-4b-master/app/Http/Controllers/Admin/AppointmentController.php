@@ -8,6 +8,7 @@ use App\Models\Patient;
 use App\Models\Doctor;
 use App\Models\DoctorSchedule;
 use App\Models\Speciality;
+use App\Services\WhatsAppService;
 use Illuminate\Http\Request;
 use Carbon\Carbon;
 
@@ -103,7 +104,7 @@ class AppointmentController extends Controller
     /**
      * Guardar una nueva cita en la base de datos.
      */
-    public function store(Request $request)
+    public function store(Request $request, WhatsAppService $whatsAppService)
     {
         // Validar los datos del formulario
         $data = $request->validate([
@@ -132,13 +133,34 @@ class AppointmentController extends Controller
         }
 
         // Crear la cita
-        Appointment::create($data);
+        $appointment = Appointment::create($data);
+        // ----------- NOTIFICACIONES DE WHATSAPP -----------
+        // Cargar paciente y doctor para obtener sus datos
+        $patient = Patient::with('user')->find($data['patient_id']);
+        $doctor = Doctor::with('user')->find($data['doctor_id']);
+
+        if ($patient && $patient->user->phone) {
+            $formattedDate = Carbon::parse($data['date'])->translatedFormat('d \d\e F \d\e Y');
+            $formattedTime = Carbon::parse($data['start_time'])->format('h:i A');
+
+            // Mensaje de confirmación predeterminado
+            $message = "🏥 *MediMatch - Cita Confirmada* \n\n"
+                     . "Hola *{$patient->user->name}*,\n\n"
+                     . "Tu cita ha sido agendada con éxito.\n"
+                     . "👨‍⚕️ *Doctor(a):* {$doctor->user->name}\n"
+                     . "📅 *Fecha:* {$formattedDate}\n"
+                     . "⏰ *Hora:* {$formattedTime}\n\n"
+                     . "Por favor procura llegar 10 minutos antes. ¡Te esperamos!";
+
+            // Enviar mensaje a través del servicio implementado
+            $whatsAppService->sendMessage($patient->user->phone, $message);
+        }
 
         // Mostrar mensaje de éxito con SweetAlert
         session()->flash('swal', [
             'icon' => 'success',
             'title' => '¡Cita creada!',
-            'text' => 'La cita médica ha sido registrada exitosamente.',
+            'text' => 'La cita médica ha sido registrada exitosamente y el paciente notificado.',
         ]);
 
         return redirect()->route('admin.appointments.index');
